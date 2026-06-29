@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tunes — Chord Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14110E;
+    --ink-2:#1E1A16;
+    --ink-3:#262019;
+    --ivory:#F3ECDD;
+    --ivory-dim:#A89E8B;
+    --brass:#D29A36;
+    --brass-deep:#9E6F1F;
+    --line:rgba(243,236,221,0.12);
+    --line-strong:rgba(243,236,221,0.22);
+    --black-key:#0C0A08;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  html{background:var(--ink);}
+  body{
+    background:
+      radial-gradient(1100px 600px at 80% -10%, rgba(210,154,54,0.10), transparent 60%),
+      radial-gradient(900px 500px at 0% 105%, rgba(210,154,54,0.05), transparent 60%),
+      var(--ink);
+    background-attachment:fixed;
+    color:var(--ivory);
+    font-family:"Space Grotesk",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:820px;margin:0 auto;padding:32px 22px 96px;}
+
+  /* ---------- Library header ---------- */
+  .masthead{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    gap:18px;padding-bottom:22px;border-bottom:1px solid var(--line-strong);
+    flex-wrap:wrap;
+  }
+  .brand{display:flex;flex-direction:column;gap:6px;}
+  .brand .eyebrow{
+    font-size:11px;letter-spacing:0.32em;text-transform:uppercase;
+    color:var(--brass);font-weight:600;
+  }
+  .brand h1{
+    font-family:"Fraunces",serif;font-weight:600;font-size:clamp(40px,8vw,68px);
+    line-height:0.92;margin:0;letter-spacing:-0.01em;
+  }
+  .brand h1 em{font-style:italic;color:var(--brass);}
+  .tally{
+    text-align:right;font-size:13px;color:var(--ivory-dim);line-height:1.4;
+    font-variant-numeric:tabular-nums;
+  }
+  .tally b{color:var(--ivory);font-size:26px;font-family:"Fraunces",serif;font-weight:600;display:block;}
+
+  /* ---------- Controls ---------- */
+  .controls{
+    display:flex;gap:12px;align-items:center;margin:22px 0 8px;flex-wrap:wrap;
+  }
+  .search{
+    flex:1 1 240px;display:flex;align-items:center;gap:10px;
+    background:var(--ink-2);border:1px solid var(--line);border-radius:999px;
+    padding:10px 16px;min-width:0;
+  }
+  .search input{
+    background:transparent;border:0;color:var(--ivory);font-family:inherit;
+    font-size:15px;width:100%;outline:none;
+  }
+  .search input::placeholder{color:var(--ivory-dim);}
+  .search svg{flex:none;opacity:0.6;}
+  .seg{
+    display:inline-flex;background:var(--ink-2);border:1px solid var(--line);
+    border-radius:999px;padding:4px;gap:2px;
+  }
+  .seg button{
+    font-family:inherit;font-size:13px;font-weight:600;letter-spacing:0.02em;
+    color:var(--ivory-dim);background:transparent;border:0;cursor:pointer;
+    padding:7px 15px;border-radius:999px;transition:color .18s,background .18s;
+  }
+  .seg button[aria-pressed="true"]{background:var(--brass);color:#1a1206;}
+
+  /* ---------- Song list ---------- */
+  .list{margin-top:14px;}
+  .row{
+    display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px;
+    padding:18px 6px;border-bottom:1px solid var(--line);cursor:pointer;
+    transition:padding-left .2s ease, background .2s ease;
+  }
+  .row:hover{padding-left:16px;background:linear-gradient(90deg,rgba(210,154,54,0.08),transparent 70%);}
+  .row .t{font-family:"Fraunces",serif;font-size:21px;font-weight:500;line-height:1.15;}
+  .row:hover .t{color:var(--brass);}
+  .row .a{font-size:13px;color:var(--ivory-dim);margin-top:2px;letter-spacing:0.01em;}
+  .keychip{
+    font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700;
+    color:var(--brass);border:1px solid var(--brass-deep);border-radius:7px;
+    padding:5px 9px;white-space:nowrap;letter-spacing:0.02em;
+  }
+  .row.todo{cursor:default;}
+  .row.todo:hover{padding-left:6px;background:none;}
+  .row.todo .t{color:var(--ivory-dim);font-weight:400;}
+  .soon{
+    font-family:"Space Grotesk",sans-serif;font-size:10px;font-weight:600;
+    letter-spacing:0.16em;text-transform:uppercase;color:var(--ivory-dim);
+    border:1px solid var(--line);border-radius:7px;padding:5px 9px;white-space:nowrap;
+  }
+  .hint{
+    margin-top:26px;padding:18px 20px;border:1px dashed var(--line-strong);
+    border-radius:var(--radius);color:var(--ivory-dim);font-size:13.5px;line-height:1.6;
+  }
+  .hint b{color:var(--ivory);}
+  .empty{padding:48px 6px;color:var(--ivory-dim);font-size:15px;text-align:center;}
+
+  /* ---------- Song page ---------- */
+  .back{
+    display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;
+    letter-spacing:0.04em;text-transform:uppercase;color:var(--ivory-dim);
+    margin-bottom:24px;transition:color .18s;
+  }
+  .back:hover{color:var(--brass);}
+  .songhead h2{
+    font-family:"Fraunces",serif;font-weight:600;font-size:clamp(32px,6.5vw,52px);
+    line-height:1.0;margin:0 0 8px;letter-spacing:-0.01em;
+  }
+  .songhead .by{font-size:15px;color:var(--ivory-dim);}
+  .songhead .by span{color:var(--ivory);}
+  .patch{
+    display:inline-flex;align-items:center;gap:8px;margin-top:14px;
+    font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ivory-dim);
+    background:var(--ink-2);border:1px solid var(--line);border-radius:8px;padding:7px 11px;
+  }
+  .patch b{color:var(--brass);font-weight:700;}
+
+  /* ---------- Pitch console (signature) ---------- */
+  .console{
+    margin:28px 0 34px;background:linear-gradient(180deg,var(--ink-3),var(--ink-2));
+    border:1px solid var(--line-strong);border-radius:var(--radius);
+    padding:18px;display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;
+    box-shadow:inset 0 1px 0 rgba(243,236,221,0.05), 0 18px 40px -28px #000;
+  }
+  .readout{display:flex;flex-direction:column;gap:8px;min-width:150px;}
+  .readout .lbl{font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:var(--ivory-dim);}
+  .keyflow{display:flex;align-items:baseline;gap:10px;font-family:"JetBrains Mono",monospace;}
+  .keyflow .orig{font-size:14px;color:var(--ivory-dim);text-decoration:line-through;text-decoration-color:var(--line-strong);}
+  .keyflow .arrow{color:var(--brass-deep);}
+  .keyflow .now{font-size:26px;font-weight:700;color:var(--brass);letter-spacing:0.01em;}
+  .keyflow.same .orig{display:none;}
+  .keyflow.same .arrow{display:none;}
+
+  .panel-right{display:flex;flex-direction:column;gap:14px;align-items:flex-end;}
+  .stepper{display:flex;align-items:center;gap:10px;}
+  .stepper .semi{
+    font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ivory-dim);
+    min-width:104px;text-align:center;font-variant-numeric:tabular-nums;
+  }
+  .stepper .semi b{color:var(--ivory);}
+  .btn{
+    font-family:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line-strong);
+    background:var(--ink);color:var(--ivory);width:42px;height:42px;font-size:20px;
+    display:grid;place-items:center;transition:transform .1s, border-color .18s, background .18s;
+  }
+  .btn:hover{border-color:var(--brass);color:var(--brass);}
+  .btn:active{transform:translateY(1px) scale(0.97);}
+  .reset{
+    font-family:inherit;font-size:12px;font-weight:600;letter-spacing:0.04em;
+    text-transform:uppercase;color:var(--ivory-dim);background:transparent;border:0;
+    cursor:pointer;padding:4px 2px;transition:color .18s;
+  }
+  .reset:hover{color:var(--brass);}
+  .reset[disabled]{opacity:0.3;cursor:default;}
+
+  /* ---------- Singer's-key (performance) controls ---------- */
+  .keymodes{display:flex;gap:0;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden;}
+  .seg2{
+    font-family:inherit;font-size:12px;font-weight:600;letter-spacing:0.03em;cursor:pointer;
+    background:var(--ink);color:var(--ivory-dim);border:0;padding:9px 13px;transition:color .18s, background .18s;
+    border-right:1px solid var(--line-strong);white-space:nowrap;
+  }
+  .seg2:last-child{border-right:0;}
+  .seg2:hover:not(:disabled){color:var(--brass);}
+  .seg2.active{background:var(--brass);color:var(--ink);font-weight:700;}
+  .seg2:disabled{opacity:0.4;cursor:default;}
+  .save{
+    font-family:inherit;font-size:12px;font-weight:600;letter-spacing:0.02em;cursor:pointer;
+    background:var(--ink-2);color:var(--brass);border:1px solid var(--line-strong);border-radius:10px;
+    padding:9px 13px;transition:border-color .18s, background .18s, color .18s;white-space:nowrap;
+  }
+  .save:hover:not(:disabled){border-color:var(--brass);background:var(--ink-3);}
+  .save:disabled{opacity:0.35;cursor:default;color:var(--ivory-dim);}
+  .perfnote{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--ivory-dim);text-align:right;max-width:230px;}
+  .perfnote b{color:var(--brass);}
+  .perfnote .muted{color:var(--ivory-dim);opacity:0.75;}
+  .linkbtn{background:transparent;border:0;color:var(--brass-deep);cursor:pointer;font:inherit;text-decoration:underline;padding:0 0 0 4px;}
+  .linkbtn:hover{color:var(--brass);}
+  .keychip.perf{background:var(--brass);color:var(--ink);border-color:var(--brass);}
+  .row .chips{display:flex;gap:6px;align-items:center;}
+  .suggested-wrap{margin-top:46px;}
+  .suggested-head{display:flex;flex-direction:column;gap:4px;padding:0 4px 14px;border-top:1px solid var(--line);padding-top:26px;}
+  .sg-title{font-family:"Fraunces",serif;font-size:20px;font-weight:600;color:var(--brass);letter-spacing:0.01em;}
+  .sg-sub{font-size:13px;color:var(--ivory-dim);max-width:46ch;}
+
+  /* piano strip */
+  .piano{display:block;}
+  .pkey-w{fill:#EDE6D6;stroke:#0C0A08;stroke-width:1;}
+  .pkey-b{fill:var(--black-key);stroke:#000;stroke-width:1;}
+  .pkey-w.lit{fill:var(--brass);}
+  .pkey-b.lit{fill:var(--brass);}
+  @media (prefers-reduced-motion:no-preference){
+    .pkey-w,.pkey-b{transition:fill .22s ease;}
+  }
+
+  /* ---------- Sections / chords ---------- */
+  .section{margin:26px 0;}
+  .section .shead{display:flex;align-items:baseline;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+  .section .sname{
+    font-size:12px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--brass);
+  }
+  .section .slyric{font-size:14px;color:var(--ivory-dim);font-style:italic;font-family:"Fraunces",serif;}
+  .prog{display:flex;flex-wrap:wrap;gap:8px;margin:7px 0;}
+  .chord{
+    font-family:"JetBrains Mono",monospace;font-weight:700;font-size:17px;
+    background:var(--ink-2);border:1px solid var(--line);border-radius:9px;
+    padding:9px 13px;letter-spacing:0.01em;min-width:46px;text-align:center;
+    color:var(--ivory);
+  }
+  .chord.slash{color:var(--ivory);}
+  .chord .b{color:var(--ivory-dim);font-weight:500;}
+
+  .foot{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);
+    font-size:12px;color:var(--ivory-dim);text-align:center;letter-spacing:0.02em;}
+
+  @media (max-width:560px){
+    .console{grid-template-columns:1fr;}
+    .panel-right{align-items:stretch;}
+    .stepper{justify-content:space-between;}
+    .piano{margin:0 auto;}
+  }
+
+  /* route transition */
+  @media (prefers-reduced-motion:no-preference){
+    .view{animation:rise .32s ease both;}
+    @keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* =========================================================
+   DATA  — studio-pitch chord charts (chords + section refs only)
+   keyPc = pitch class of the song's tonic (0=C … 11=B)
+   Each section: { name, lyric, lines:[ [chordTokens...] , ... ] }
+   ========================================================= */
+const SONGS = [
+  { id:"youre-still-the-one", title:"You're Still the One", artist:"Teddy Swims", keyPc:1, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Looks like we made it…", lines:[["Db","Db/F","Gb","Ab"],["Db","Db/F","Gb","Ab"]]},
+      {name:"Pre-chorus", lyric:"They said, I bet they'll never make it…", lines:[["Db","Db/F","Gb","Ab"],["Db","Gb","Ab"],["Db","Gb","Ab"]]},
+      {name:"Chorus", lyric:"You're still the one…", lines:[["Gb","Db","Gb","Ebm","Ab"],["Gb","Db","Gb","Ebm","Ab","Db","Gb","Ab"]]},
+      {name:"Ending", lyric:"I'm so glad we made it…", lines:[["Db","Db/F","Gb","Ab","Db"]]}
+    ]},
+  { id:"watermelon-sugar", title:"Watermelon Sugar", artist:"Harry Styles", keyPc:0, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Tastes like strawberries…", lines:[["Dm7","Am7","C","G"]]},
+      {name:"Pre-chorus", lyric:"Breathe me in, breathe me out…", lines:[["Dm7","Am7","C","G"]]},
+      {name:"Chorus", lyric:"Watermelon sugar high… (N.C. on last)", lines:[["Dm7","Am7","C","G"]]},
+      {name:"Outro", lyric:"I just wanna taste it…", lines:[["Dm7","Am7","C","G"]]}
+    ]},
+  { id:"ironic", title:"Ironic", artist:"Alanis Morissette", keyPc:11, quality:"major",
+    sections:[
+      {name:"Intro / Bridge", lyric:"Life has a funny way…", lines:[["Emaj7","F#"],["Emaj7","F#"]]},
+      {name:"Verse", lyric:"An old man turned ninety-eight…", lines:[["F#","B","F#","G#m"]]},
+      {name:"Chorus", lyric:"It's like rain on your wedding day…", lines:[["F#","B","F#","G#m"],["A","E","F#"]]}
+    ]},
+  { id:"babylon", title:"Babylon", artist:"David Gray", keyPc:3, quality:"major",
+    sections:[
+      {name:"Intro / Verse", lyric:"Friday night I'm going nowhere…", lines:[["Ebmaj9/G","Ab6"],["Ebmaj9/G","Ab6","Fm"]]},
+      {name:"Chorus", lyric:"If you want it, come and get it…", lines:[["Eb","Bb","Fm","Gm"],["Eb","Bb","Fm","Ab"],["Eb","Bb","Fm","Bb"]]},
+      {name:"Tag", lyric:"Babylon…", lines:[["Ebmaj9/G","Ab6"]]}
+    ]},
+  { id:"irreplaceable", title:"Irreplaceable", artist:"Zak Manley", keyPc:10, quality:"major",
+    sections:[
+      {name:"Intro / Hook", lyric:"To the left, to the left…", lines:[["Bb","F","Cm","Eb"]]},
+      {name:"Verse", lyric:"Everything you own in the box…", lines:[["Bb","F","Cm","Eb"]]},
+      {name:"Pre-chorus", lyric:"Standing in the front yard…", lines:[["Eb","Gm"],["Eb","Dm7","Cm","F"]]},
+      {name:"Chorus", lyric:"You must not know 'bout me…", lines:[["Bb","F","Cm","Eb"],["Bb","F","Cm","Eb","F"]]},
+      {name:"Bridge", lyric:"So since I'm not your everything…", lines:[["Eb","F","Bb","Bb/A","Gm","F"],["Cm","Eb","F"]]}
+    ]},
+  { id:"wherever-you-will-go", title:"Wherever You Will Go", artist:"The Calling", keyPc:2, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"So lately, been wondering…", lines:[["D","A/C#","Bm","G"]]},
+      {name:"Chorus", lyric:"If I could then I would…", lines:[["D","A","Bm","G"]]},
+      {name:"Bridge", lyric:"Run away with my heart…", lines:[["Bm","G","A","F#m"],["F","G","Em"]]},
+      {name:"Outro", lyric:"If I could turn back time…", lines:[["D","A","Bm","G"]]}
+    ]},
+  { id:"push", title:"Push", artist:"Matchbox Twenty", keyPc:6, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["F#","C#","D#m","Badd9"]]},
+      {name:"Verse", lyric:"She said I don't know…", lines:[["F#","C#","D#m7","Badd9"]]},
+      {name:"Pre-chorus", lyric:"This ain't over…", lines:[["C#","Badd9"],["C#","Badd9","C#"]]},
+      {name:"Chorus", lyric:"I wanna push you around…", lines:[["F#","C#","Badd9","C#"],["D#m","C#","Badd9","C#"]]},
+      {name:"Bridge", lyric:"Push you around…", lines:[["D#m","C#","Badd9","C#"]]}
+    ]},
+  { id:"die-with-a-smile", title:"Die With a Smile", artist:"Lady Gaga & Bruno Mars", keyPc:9, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(ooh, ooh)", lines:[["Amaj7","Dmaj7"]]},
+      {name:"Verse", lyric:"I, I just woke up from a dream…", lines:[["Amaj7","Dmaj7"]]},
+      {name:"Pre-chorus", lyric:"Wherever you go, that's where I'll follow…", lines:[["Amaj7","C#m7","F#sus4","F#"]]},
+      {name:"Chorus", lyric:"If the world was ending…", lines:[["Bm","E7","C#m7","F#m"],["Bm","E7","A","E/G#","F#m"],["Bm","E7","Amaj7","Dmaj7"]]},
+      {name:"Last chorus lift", lyric:"…be next to you", lines:[["Bm","C#7","F#m","B"],["Bm","E7","Amaj7"]]}
+    ]},
+  { id:"seventeen-going-under", title:"Seventeen Going Under", artist:"Sam Fender", keyPc:1, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["Ab","Db","Gb","Db"]]},
+      {name:"Verse", lyric:"I remember the sickness was forever…", lines:[["Bbm","Ab","Db","Gb","Db"]]},
+      {name:"Chorus", lyric:"You hurt them like they're nothing…", lines:[["Ab","Db","Gb","Db"],["Bbm","Ab"]]},
+      {name:"Outro", lyric:"I'm seventeen going under…", lines:[["Bbm","Ab","Db","Gb"]]}
+    ]},
+  { id:"best-part", title:"Best Part", artist:"Daniel Caesar & H.E.R.", keyPc:2, quality:"major",
+    notes:"Organ: Roto Org 2 tone 091  /  DrwnOrg 074",
+    sections:[
+      {name:"Intro", lyric:"(oh, ey)", lines:[["Dmaj7","Am7","Gmaj7","Bbmaj7"]]},
+      {name:"Verse", lyric:"You don't know babe…", lines:[["Dmaj7","Am7","Gmaj7","Bbmaj7"],["Gm","Dmaj7"]]},
+      {name:"Chorus", lyric:"I just wanna see how beautiful you are…", lines:[["Dmaj7","Am7","Gmaj7","Bbmaj7"],["Em","Bbmaj7","Gm","Dmaj7"]]},
+      {name:"Outro", lyric:"If you love me, won't you say something…", lines:[["Dmaj7","Am7","Gmaj7","Bbmaj7"]]}
+    ]},
+  { id:"speed-of-sound", title:"Speed of Sound", artist:"Coldplay", keyPc:2, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["A","Em7","Em7","D"]]},
+      {name:"Verse", lyric:"How long before I get in…", lines:[["A","Em7","D"]]},
+      {name:"Pre-chorus", lyric:"All that noise, all that sound…", lines:[["G","A","Bm"]]},
+      {name:"Chorus", lyric:"And birds go flying at the speed of sound…", lines:[["G","Bm","D","G"],["G","Bm","F#m","G"]]}
+    ]},
+  { id:"bennie-and-the-jets", title:"Bennie and the Jets", artist:"Elton John", keyPc:7, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["Gmaj7","Fmaj7"]]},
+      {name:"Verse", lyric:"Hey kids, shake it loose together…", lines:[["Am7","D6","G"],["G","G#dim7"],["Am7","D","Em"],["Am","Bm7","C"]]},
+      {name:"Chorus", lyric:"Say, Candy and Ronnie…", lines:[["Gmaj7","Am7","C"],["Gmaj7","Am7"],["C","D","Em","G/D"],["C","Bb/C","D","Gmaj7","Fmaj7"]]},
+      {name:"Outro", lyric:"Bennie, Bennie…", lines:[["Gmaj7","Fmaj7"]]}
+    ]},
+  { id:"the-night-we-met", title:"The Night We Met", artist:"Lord Huron", keyPc:9, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(oooh)", lines:[["F#m","A","D"]]},
+      {name:"Verse", lyric:"I am not the only traveler…", lines:[["F#m","A","D"]]},
+      {name:"Refrain", lyric:"Take me back to the night we met…", lines:[["F#m","A","D"]]},
+      {name:"Bridge", lyric:"I had all and then most of you…", lines:[["A","F#m","E"]]}
+    ]},
+  { id:"free-fallin", title:"Free Fallin'", artist:"Tom Petty", keyPc:5, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"She's a good girl, loves her mama…", lines:[["F","Bbsus2","F","C"]]},
+      {name:"Chorus", lyric:"And I'm free, free fallin'…", lines:[["F","Bbsus2","F","C"]]}
+    ]},
+  { id:"somewhere-only-we-know", title:"Somewhere Only We Know", artist:"Keane", keyPc:9, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["A","Amaj7","Bm","Esus4","E"]]},
+      {name:"Verse", lyric:"I walked across an empty land…", lines:[["A","Amaj7","Bm","Esus4","E"]]},
+      {name:"Pre-chorus", lyric:"Oh, simple thing, where have you gone…", lines:[["F#m","C#m","D","E"]]},
+      {name:"Chorus", lyric:"And if you have a minute, why don't we go…", lines:[["Bm","C#m","E"],["Bm","C#m","E"],["Bm","C#m","E"],["D","E","A"]]}
+    ]},
+  { id:"dont-stop-believin", title:"Don't Stop Believin'", artist:"Journey", keyPc:4, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(piano / bass)", lines:[["E","B","C#m","A"],["E","B","G#m","A"]]},
+      {name:"Verse", lyric:"Just a small town girl…", lines:[["E","B","C#m","A"],["E","B","G#m","A"]]},
+      {name:"Pre-chorus", lyric:"Strangers waiting up and down the boulevard…", lines:[["A","E"],["A","B"]]},
+      {name:"Chorus", lyric:"Don't stop believin'…", lines:[["E","B","C#m","A"]]}
+    ]},
+  { id:"time-after-time", title:"Time After Time", artist:"Cyndi Lauper", keyPc:0, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["F","G","Em","F"]]},
+      {name:"Verse", lyric:"Lying in my bed, I hear the clock tick…", lines:[["Dm/C","C","Dm/C","C"]]},
+      {name:"Pre-chorus", lyric:"Then you say, go slow…", lines:[["F","G","Em","F"],["G","Em"]]},
+      {name:"Chorus", lyric:"If you're lost you can look and you will find me…", lines:[["G","Am7","F","G","C"]]}
+    ]},
+  { id:"dont-dream-its-over", title:"Don't Dream It's Over", artist:"Crowded House", keyPc:3, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["Ebsus2","Eb7sus2","Eb7sus4"]]},
+      {name:"Verse", lyric:"There is freedom within, there is freedom without…", lines:[["Ebsus2","Cm"],["Ab","G7"]]},
+      {name:"Chorus", lyric:"Hey now, hey now, don't dream it's over…", lines:[["Ab","Bb","Ebsus2","Cm"]]}
+    ]},
+  { id:"hanging-by-a-moment", title:"Hanging By A Moment", artist:"Lifehouse", keyPc:1, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(cello / riff)", lines:[["Db"]]},
+      {name:"Verse", lyric:"Desperate for changing, starving for truth…", lines:[["Db"]]},
+      {name:"Chorus", lyric:"I'm falling even more in love with you…", lines:[["Bbm","Ab","Db"]]},
+      {name:"Bridge", lyric:"There's nothing else to lose…", lines:[["Gb","Db"],["Gb","Bbm"],["Gb","Ab","Fm"]]}
+    ]},
+  { id:"yellow", title:"Yellow", artist:"Coldplay", keyPc:11, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["B","Badd11"],["B","F#","Emaj7","B"]]},
+      {name:"Verse", lyric:"Look at the stars, look how they shine for you…", lines:[["B","F#","Emaj7","B"]]},
+      {name:"Chorus", lyric:"Your skin, oh yeah, your skin and bones…", lines:[["Emaj7","G#m","F#"],["Emaj7","G#m","F#"],["Emaj7","G#m","F#","Emaj7"]]}
+    ]},
+  { id:"aint-no-sunshine", title:"Ain't No Sunshine", artist:"Bill Withers", keyPc:9, quality:"minor",
+    sections:[
+      {name:"Intro", lyric:"(gentle)", lines:[["Am","Em7","G","Am"]]},
+      {name:"Verse", lyric:"Ain't no sunshine when she's gone…", lines:[["Am","Em7","G","Am"],["Em7","Dm"],["Am","Em7","G","Am"]]},
+      {name:"Bridge", lyric:"I know, I know, I know…", lines:[["Am"],["Am/C","Em7","Dm"]]}
+    ]},
+  { id:"stay", title:"Stay", artist:"Rihanna & Mikky Ekko", keyPc:0, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"All along it was a fever…", lines:[["C","G/B","Am","F"]]},
+      {name:"Chorus", lyric:"Not really sure how to feel about it…", lines:[["C","G/B","Am","F"]]},
+      {name:"Bridge", lyric:"Ooh, the reason I hold on…", lines:[["F","G","Am"],["F","G"]]}
+    ]},
+  { id:"everybody-wants-to-rule-the-world", title:"Everybody Wants to Rule the World", artist:"Tears for Fears", keyPc:2, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(riff)", lines:[["Dmaj7","G/D"]]},
+      {name:"Verse", lyric:"Welcome to your life, there's no turning back…", lines:[["Dmaj7","G/D"]]},
+      {name:"Chorus", lyric:"Everybody wants to rule the world…", lines:[["Em","F#m","G","F#m"],["Em","F#m","G","A","D","G"]]},
+      {name:"Bridge", lyric:"There's a room where the light won't find you…", lines:[["D","A","G"],["D","A","G"]]}
+    ]},
+  { id:"until-i-found-you", title:"Until I Found You", artist:"Stephen Sanchez", keyPc:10, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["Bb","Dm","Eb","Ebm"]]},
+      {name:"Verse", lyric:"Georgia, wrap me up in all your arms…", lines:[["Bb","Dm","Eb","Ebm"]]},
+      {name:"Chorus", lyric:"I would never fall in love again, until I found her…", lines:[["Eb","F","Bb","Dm"],["Eb","F","Bb","Bb7"],["Eb","F","Bb","Dm"],["Bb","Ebm"]]}
+    ]},
+  { id:"torn", title:"Torn", artist:"Natalie Imbruglia", keyPc:5, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["F","Bb","F","Gm"]]},
+      {name:"Verse", lyric:"I thought I saw a man brought to life…", lines:[["F","Am","Bb"]]},
+      {name:"Pre-chorus", lyric:"There's nothing where he used to lie…", lines:[["Dm","C","Am","C"]]},
+      {name:"Chorus", lyric:"I'm all out of faith, this is how I feel…", lines:[["F","C","Dm"],["Bb","F"],["C","Dm"],["Bb","F"],["C","Dm","Bb"]]}
+    ]},
+  { id:"stick-season", title:"Stick Season", artist:"Noah Kahan", keyPc:9, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(fingerpicked)", lines:[["A"]]},
+      {name:"Verse", lyric:"As you promised me that I was more than all the miles combined…", lines:[["A","E","F#m","D"]]},
+      {name:"Chorus", lyric:"And I love Vermont, but it's the season of the sticks…", lines:[["A","E","F#m","D"],["A","E","F#m","D","E","A"]]}
+    ]},
+  { id:"a-thousand-years", title:"A Thousand Years", artist:"James Arthur", keyPc:10, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["Bb","F/A","Gm7","F"],["Eb","Fsus4","F"]]},
+      {name:"Verse", lyric:"Heart beats fast, colors and promises…", lines:[["Eb","Bb","Gm7","F/A"],["Eb","Bb","Gm7","F/A"],["Bb","Cm7","Gm","F"]]},
+      {name:"Chorus", lyric:"I have died everyday waiting for you…", lines:[["Bb","F/A","Gm7","F"],["Eb","Fsus4","F"]]}
+    ]},
+  { id:"fast-car", title:"Fast Car", artist:"Luke Combs", keyPc:9, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(riff)", lines:[["D","A","F#m7","E"]]},
+      {name:"Verse", lyric:"You got a fast car…", lines:[["D","A","F#m7","E"]]},
+      {name:"Chorus", lyric:"So I remember when we were driving in your car…", lines:[["D","A","F#m7","E"]]}
+    ]},
+  { id:"shallow", title:"Shallow", artist:"Lady Gaga & Bradley Cooper", keyPc:7, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["Em","D","G"],["C","G","D"]]},
+      {name:"Verse", lyric:"Tell me somethin' girl…", lines:[["Em","D","G"],["C","G","D"]]},
+      {name:"Refrain", lyric:"I'm fallin'…", lines:[["Em","D","G"],["C","G","D"]]},
+      {name:"Chorus", lyric:"I'm off the deep end, watch as I dive in…", lines:[["Am","D"],["G","D","Em"],["Am","D"],["G","D","Em"]]},
+      {name:"Bridge", lyric:"(oooh, in the shallow)", lines:[["Em","Bm","D","A"]]}
+    ]},
+  { id:"always-remember-us-this-way", title:"Always Remember Us This Way", artist:"Lady Gaga", keyPc:0, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"That Arizona sky burning in your eyes…", lines:[["Am","F","C","G"]]},
+      {name:"Chorus", lyric:"So when I'm all choked up…", lines:[["F","C","Am","G"],["F","G","Am"],["F","G","C"]]},
+      {name:"Bridge", lyric:"I don't wanna be just a memory…", lines:[["Bb","F","C"],["Bb","F","G"]]}
+    ]},
+  { id:"hold-back-the-river", title:"Hold Back the River", artist:"James Bay", keyPc:5, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Tried to keep you close to me, but life got in between…", lines:[["Dm7","F","Bb","F"],["Bb","F","C"]]},
+      {name:"Chorus", lyric:"Hold back the river, let me look in your eyes…", lines:[["Bb","F"],["Bb","F","C"]]}
+    ]},
+  { id:"dancing-on-my-own", title:"Dancing On My Own", artist:"Calum Scott", keyPc:1, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Somebody said you got a new friend…", lines:[["Db","Ab","Gb"]]},
+      {name:"Refrain", lyric:"Yeah, I know it's stupid…", lines:[["Bbm","Ab","Gb"],["Gb","Db"]]},
+      {name:"Chorus", lyric:"I'm in the corner, watching you kiss her…", lines:[["Db","Ab","Gb"],["Bbm","Ab","Gb"]]},
+      {name:"Bridge", lyric:"So far away but still so near…", lines:[["Gb","Ab","Bbm","Ab","Gb"],["Gb","Ab","Bbm","Ab","Db"]]}
+    ]},
+  { id:"last-christmas", title:"Last Christmas", artist:"Wham!", keyPc:2, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(Ah, aha, ooh)", lines:[["D","Bm","Em","A"]]},
+      {name:"Chorus", lyric:"Last Christmas, I gave you my heart…", lines:[["D","Bm","Em","A"]]},
+      {name:"Verse", lyric:"Once bitten and twice shy…", lines:[["D","Bm","Em","A"]]}
+    ]},
+  { id:"im-on-fire", title:"I'm On Fire", artist:"Bruce Springsteen", keyPc:4, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["E","C#m"]]},
+      {name:"Verse", lyric:"Hey little girl, is your daddy home…", lines:[["E","A","C#m"],["A","B","E"]]},
+      {name:"Bridge", lyric:"Sometimes it's like someone took a knife…", lines:[["A","C#m"],["A","B","E"]]}
+    ]},
+  { id:"dreams", title:"Dreams", artist:"The Cranberries", keyPc:4, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["E","A","B","E"]]},
+      {name:"Verse", lyric:"Oh, my life is changing every day…", lines:[["E","A","B","E"]]},
+      {name:"Instrumental", lyric:"(la la la…)", lines:[["G","C"]]}
+    ]},
+  { id:"big-yellow-taxi", title:"Big Yellow Taxi", artist:"Counting Crows", keyPc:8, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"They paved paradise and put up a parking lot…", lines:[["Ab","Db","Ab"],["Db","Ab"]]},
+      {name:"Chorus", lyric:"Don't it always seem to go…", lines:[["Ab","Eb"],["Db","Ab"],["Db","Eb","Ab"]]},
+      {name:"Bridge", lyric:"Late last night, I heard the screen door slam…", lines:[["Db","Ab"],["Db","Eb","Ab"]]}
+    ]},
+  { id:"say-you-wont-let-go", title:"Say You Won't Let Go", artist:"James Arthur", keyPc:10, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I met you in the dark, you lit me up…", lines:[["Bb","F","Gm","Eb"]]},
+      {name:"Pre-chorus", lyric:"Then you smiled over your shoulder…", lines:[["Bb","F","Gm","Eb"]]},
+      {name:"Chorus", lyric:"I knew I loved you then…/Just say you won't let go", lines:[["Bb","F","Gm","Eb"]]}
+    ]},
+  { id:"vampire", title:"vampire", artist:"Olivia Rodrigo", keyPc:5, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Hate to give the satisfaction, askin' how you're doin' now…", lines:[["F","A","Bb","Bbm"]]},
+      {name:"Chorus", lyric:"'Cause girl, you're a damn good liar…", lines:[["F","C","Gm","Bb"]]},
+      {name:"Bridge", lyric:"You said it was true love…", lines:[["Bb","C"]]}
+    ]},
+  { id:"drops-of-jupiter", title:"Drops of Jupiter", artist:"Train", keyPc:0, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["C","G","F"]]},
+      {name:"Verse", lyric:"Now that she's back in the atmosphere…", lines:[["C","G","F"]]},
+      {name:"Chorus", lyric:"Tell me, did you sail across the sun…", lines:[["G","D","F","C"],["G","D","Dm","F","C"]]}
+    ]},
+  { id:"there-she-goes", title:"There She Goes", artist:"Sixpence None the Richer", keyPc:10, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["Bb","F","Eb"]]},
+      {name:"Verse", lyric:"There she goes, there she goes again…", lines:[["Bb","F","Eb"]]},
+      {name:"Pre-chorus", lyric:"And I just can't contain…", lines:[["Cm","Bb","Eb"],["Cm","Bb","Eb","F"]]}
+    ]},
+  { id:"stop-and-stare", title:"Stop and Stare", artist:"OneRepublic", keyPc:4, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["E","Emaj7"]]},
+      {name:"Verse", lyric:"This town is colder now, I think it's sick of us…", lines:[["E"],["C#m","A"]]},
+      {name:"Chorus", lyric:"Stop and stare, I think I'm moving but I go nowhere…", lines:[["E","B/D#","C#m","A"]]}
+    ]},
+  { id:"slide", title:"Slide", artist:"Goo Goo Dolls", keyPc:8, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Could you whisper in my ear, the things you wanna feel…", lines:[["Fm","Eb","Db","Ab"]]},
+      {name:"Chorus", lyric:"So why don't you slide…", lines:[["Db","Ab"]]},
+      {name:"Bridge", lyric:"And I'll do anything you ever dreamed to be complete…", lines:[["Db","Ab"],["Eb","Fm","Eb"]]}
+    ]},
+  { id:"beautiful-things", title:"Beautiful Things", artist:"Benson Boone", keyPc:10, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"For a while there it was rough, but lately I've been doin' better…", lines:[["Eb","Bb","F","Gm"]]},
+      {name:"Pre-chorus", lyric:"But there's no man as terrified as the man who stands to lose you…", lines:[["Cm","F"]]},
+      {name:"Chorus", lyric:"Please stay, I want you, I need you, oh God…", lines:[["Bb","Gm","F","Eb"]]}
+    ]},
+  { id:"three-am", title:"3AM", artist:"Matchbox Twenty", keyPc:8, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["Ab","Db"]]},
+      {name:"Verse", lyric:"She said it's cold outside and she hands me my raincoat…", lines:[["Eb","Db","Ab","Db"]]},
+      {name:"Chorus", lyric:"And she says baby, it's 3 a.m., I must be lonely…", lines:[["Ab","Eb","Db"]]},
+      {name:"Bridge", lyric:"Well, I can't help but be scared of it all sometimes…", lines:[["Fm","Eb","Db"]]}
+    ]},
+  { id:"birds-of-a-feather", title:"BIRDS OF A FEATHER", artist:"Billie Eilish", keyPc:2, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I want you to stay, 'til I'm in the grave…", lines:[["Dmaj7","Bm7","Em7","A"]]},
+      {name:"Chorus", lyric:"Birds of a feather, we should stick together…", lines:[["Dmaj7","Bm7","Em7","A"]]},
+      {name:"Outro", lyric:"I knew you in another life…", lines:[["Dmaj7","Bm7","Em7","A"]]}
+    ]},
+  { id:"drivers-license", title:"drivers license", artist:"Us The Duo", keyPc:10, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I got my driver's license last week…", lines:[["Bb","Gm","Eb","Bb"]]},
+      {name:"Pre-chorus", lyric:"And I know we weren't perfect…", lines:[["Ebmaj7","Bb","F"]]},
+      {name:"Chorus", lyric:"'Cause I still see your face in the white cars, front yards…", lines:[["Gm","Ebmaj7","Bb","F"]]},
+      {name:"Bridge", lyric:"Red lights, stop signs…", lines:[["Gm","Bb","Eb"]]}
+    ]},
+  { id:"champagne-problems", title:"champagne problems", artist:"Taylor Swift", keyPc:0, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(piano)", lines:[["C","G","Am","F"]]},
+      {name:"Verse", lyric:"You booked the night train for a reason…", lines:[["C","G","Am","F"]]},
+      {name:"Chorus", lyric:"Because I dropped your hand while dancing…", lines:[["C","G","Am","F"]]},
+      {name:"Bridge", lyric:"One for the money, two for the show…", lines:[["C","G","Am","F"]]}
+    ]},
+  { id:"end-of-beginning", title:"End of Beginning", artist:"Djo", keyPc:2, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Just one more tear to cry, one teardrop from my eye…", lines:[["D","Bm","A","D"],["Bm","Em","A"]]},
+      {name:"Chorus", lyric:"And when I'm back in Chicago, I feel it…", lines:[["G","D","A"],["Bm","A","G"],["D","A","G"]]},
+      {name:"Bridge", lyric:"You take the man out of the city, not the city out the man…", lines:[["A","Bm"]]}
+    ]},
+  { id:"crazy", title:"Crazy", artist:"Gnarls Barkley", keyPc:0, quality:"minor",
+    sections:[
+      {name:"Intro", lyric:"(groove)", lines:[["Cm"]]},
+      {name:"Verse", lyric:"I remember when, I remember when I lost my mind…", lines:[["Cm","Eb"],["Ab"],["Gsus4","G"]]},
+      {name:"Chorus", lyric:"Does that make me crazy?…", lines:[["Cm","Eb","Ab"],["Gsus4","G"]]},
+      {name:"Bridge", lyric:"And I hope that you are having the time of your life…", lines:[["C","Ab"],["Eb","Gsus4","G"]]}
+    ]},
+  { id:"sex-on-fire", title:"Sex on Fire", artist:"Kings of Leon", keyPc:4, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(riff)", lines:[["E","C#m"]]},
+      {name:"Verse", lyric:"Lay where you're laying, don't make a sound…", lines:[["E","C#m"]]},
+      {name:"Chorus", lyric:"You, your sex is on fire…", lines:[["E"],["C#m","A"]]}
+    ]},
+  { id:"lose-control", title:"Lose Control", artist:"Teddy Swims", keyPc:6, quality:"minor",
+    sections:[
+      {name:"Verse", lyric:"Something's got a hold of me lately, no I don't know myself anymore…", lines:[["F#m","A","D","C#"]]},
+      {name:"Chorus", lyric:"I lose control when you're not next to me…", lines:[["F#m","A","D","C#"]]}
+    ]},
+  { id:"ordinary", title:"Ordinary", artist:"Alex Warren", keyPc:2, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"They say the holy water's watered down…", lines:[["Em","D"]]},
+      {name:"Chorus", lyric:"You're taking me out of the ordinary…", lines:[["Em","D/F#","G","A"],["Bm","A"]]},
+      {name:"Lift", lyric:"Something so heavenly, higher than ecstasy…", lines:[["Em","D/F#","G","A","Bm"],["A","D/F#"]]}
+    ]},
+  { id:"georgia", title:"Georgia", artist:"Vance Joy", keyPc:11, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"She is something to behold, elegant and bold…", lines:[["G#m","B","E","F#"]]},
+      {name:"Chorus", lyric:"And I could easily lose my mind…", lines:[["G#m","F#","B","E"]]}
+    ]},
+  { id:"drive", title:"Drive", artist:"Incubus", keyPc:4, quality:"minor",
+    sections:[
+      {name:"Verse", lyric:"Sometimes I feel the fear of uncertainty stinging clear…", lines:[["Em","Cmaj7","Am7"]]},
+      {name:"Pre-chorus", lyric:"It's driven me before, and it seems to have a vague, haunting mass appeal…", lines:[["Cmaj7","A7"]]},
+      {name:"Chorus", lyric:"Whatever tomorrow brings, I'll be there…", lines:[["Em","Cmaj7","Am7"]]}
+    ]},
+  { id:"fade-into-you", title:"Fade Into You", artist:"Mazzy Star", keyPc:9, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["A","E","Bm"]]},
+      {name:"Verse", lyric:"I wanna hold the hand inside you…", lines:[["A","E","Bm"]]},
+      {name:"Chorus", lyric:"Fade into you, strange you never knew…", lines:[["A","E","Bm"],["A","E","Bm","D"]]}
+    ]},
+  { id:"roses", title:"Roses", artist:"Outkast", keyPc:4, quality:"minor",
+    sections:[
+      {name:"Verse", lyric:"Caroline! All the guys would say she's mighty fine…", lines:[["Em","D","C","Bm","Am","G","F"]]},
+      {name:"Chorus", lyric:"I know you'd like to think your shirt don't stank…", lines:[["Em","D","C","Bm"],["F","C","D"]]}
+    ]},
+  { id:"last-request", title:"Last Request", artist:"Paolo Nutini", keyPc:5, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Slow down, lie down, remember it's just you and me…", lines:[["F","Am","Cm","Gm"]]},
+      {name:"Pre-chorus", lyric:"I just want you closer, is that alright?…", lines:[["Bb","Dm","Gm"]]},
+      {name:"Chorus", lyric:"Grant my last request and just let me hold you…", lines:[["F","Am","Dm","Gm"],["Bb","C"]]}
+    ]},
+  { id:"hand-in-my-pocket", title:"Hand in My Pocket", artist:"Alanis Morissette", keyPc:7, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I'm broke but I'm happy, I'm poor but I'm kind…", lines:[["G"]]},
+      {name:"Chorus", lyric:"And what it all comes down to, is that everything's gonna be fine…", lines:[["F","C","G"],["F","C","D","G"]]}
+    ]},
+  { id:"so-easy", title:"So Easy (To Fall In Love)", artist:"Olivia Dean", keyPc:3, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["Fm7","Gm7"]]},
+      {name:"Verse", lyric:"I could be the twist, the one to make you stop…", lines:[["Bb7","Ebmaj7","Em7b5"]]},
+      {name:"Chorus", lyric:"'Cause I make it so easy to fall in love…", lines:[["Gm","Fm","Bb7","Cm"],["C7","Fm","Bb7"],["Cm","Adim"],["Fm","Gm"]]}
+    ]},
+  { id:"dive", title:"Dive", artist:"Olivia Dean", keyPc:5, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"It isn't working, I'm a tidal wave of question marks…", lines:[["Bbmaj7","Fmaj7"]]},
+      {name:"Pre-chorus", lyric:"It's so crazy, lately you just understand my feelings…", lines:[["Am7","Dm7","Gm7"],["Bbm7","C"]]},
+      {name:"Chorus", lyric:"Maybe it's the loving in your eyes…", lines:[["Bbmaj7","Fmaj7"],["Am7","Dm7","Gm7"],["Bbm7","C","Bbmaj7"]]}
+    ]},
+  { id:"slow-it-down", title:"Slow It Down", artist:"Benson Boone", keyPc:1, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I'd never met you, but I wanted to invite you to the party…", lines:[["Db","Ab"]]},
+      {name:"Pre-chorus", lyric:"In your head right now, while your whole world is spinning out…", lines:[["Fm","Eb","Ab","Eb","Db"]]},
+      {name:"Chorus", lyric:"So slow it down, take a moment now, we're too young to drown…", lines:[["Db","Ab"]]}
+    ]},
+  { id:"if-youre-gone", title:"If You're Gone", artist:"Matchbox Twenty", keyPc:9, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I think I've already lost you, I think you're already gone…", lines:[["A","D","F#m","E","D"],["A","D"]]},
+      {name:"Pre-chorus", lyric:"I think you're so mean, I think we should try…", lines:[["Bm","E","A","D"],["Bm","E","G"]]},
+      {name:"Chorus", lyric:"If you're gone, maybe it's time to go home…", lines:[["A","D","E"],["Bm","E","A"]]}
+    ]},
+  { id:"trouble", title:"Trouble", artist:"Coldplay", keyPc:7, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["G","Em","Bm"]]},
+      {name:"Verse", lyric:"Oh no, I see, a spider web is tangled up with me…", lines:[["G","Em","Bm"],["F","Am","G"]]},
+      {name:"Chorus", lyric:"And ah, I never meant to cause you trouble…", lines:[["A","Em"]]},
+      {name:"Bridge", lyric:"And they spun a web for me…", lines:[["Em","F#m","G","F#m","Em"]]}
+    ]},
+  { id:"jealous", title:"Jealous", artist:"Labrinth", keyPc:1, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I'm jealous of the rain, that falls upon your skin…", lines:[["Db","Gb","Bbm"],["Gb","Ab","Db"]]},
+      {name:"Chorus", lyric:"I wished you the best of all this world could give…", lines:[["Db","Bbm","Ebm","Ab"],["Gb","Bbm","Db"],["Ebm","Gb","Ab"]]}
+    ]},
+  { id:"the-only-exception", title:"The Only Exception", artist:"Spacey Jane", keyPc:11, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["B","F#m","E"]]},
+      {name:"Verse", lyric:"When I was younger I saw my daddy cry and curse at the wind…", lines:[["B","F#m","E"]]},
+      {name:"Chorus", lyric:"You are the only exception…", lines:[["B"],["F#m","E"]]},
+      {name:"Bridge", lyric:"I've got a tight grip on reality…", lines:[["C#m","B","F#"]]},
+      {name:"Outro", lyric:"And I'm on my way to believing…", lines:[["A","E","B"]]}
+    ]},
+  { id:"talk-to-you", title:"Talk to You", artist:"Sam Fender", keyPc:7, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"When my face is all changed from the cruelty of age, I'll still miss you…", lines:[["C","G","D","Em"]]},
+      {name:"Chorus", lyric:"I don't deserve to talk to you…", lines:[["C","G","D"],["Am","Em"]]}
+    ]},
+  { id:"fooled-around", title:"Fooled Around and Fell in Love", artist:"Elvin Bishop", keyPc:5, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I must have been through about a million girls…", lines:[["F","Am","Eb","Bb"]]},
+      {name:"Chorus", lyric:"But then I fooled around and fell in love…", lines:[["F","Am","Eb","Bb"]]},
+      {name:"Bridge", lyric:"Free, on my own is the way I used to be…", lines:[["C","Bb"],["Gm","C7"]]}
+    ]},
+  { id:"bette-davis-eyes", title:"Bette Davis Eyes", artist:"Kim Carnes", keyPc:5, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Her hair is Harlow gold, her lips sweet surprise…", lines:[["Bb","Dm","C"],["Bb","C","F"]]},
+      {name:"Chorus", lyric:"And she'll tease you, she'll unease you, all the better just to please you…", lines:[["Dm","F","Bb","F"]]},
+      {name:"Tag", lyric:"She's got Bette Davis eyes…", lines:[["Bb","Dm","C"]]}
+    ]},
+  { id:"englishman-in-new-york", title:"Englishman in New York", artist:"Sting", keyPc:11, quality:"minor",
+    sections:[
+      {name:"Verse", lyric:"I don't drink coffee, I take tea my dear…", lines:[["Em","A","Bm"]]},
+      {name:"Refrain", lyric:"I'm an alien, I'm a legal alien, I'm an Englishman in New York…", lines:[["Em","A","Bm"]]},
+      {name:"Bridge", lyric:"Modesty, propriety can lead to notoriety…", lines:[["D","A"],["Bm","F#"],["G","A"],["C#dim","Bm","F#m"]]}
+    ]},
+  { id:"rosanna", title:"Rosanna", artist:"Toto", keyPc:10, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"All I wanna do when I wake up in the morning is see your eyes, Rosanna…", lines:[["G","F","Em7"],["G","C"]]},
+      {name:"Verse 2", lyric:"All I wanna do in the middle of the evening is hold you tight…", lines:[["F","Eb","Dm7"]]},
+      {name:"Pre-chorus", lyric:"Not quite a year since she went away, Rosanna yeah…", lines:[["Gm","F/A","Bb"],["Eb","Bb","F"]]},
+      {name:"Chorus", lyric:"Meet you all the way, Rosanna yeah…", lines:[["Cm","Bb","F"]]}
+    ]},
+  { id:"zephyr-song", title:"The Zephyr Song", artist:"Red Hot Chili Peppers", keyPc:9, quality:"minor",
+    sections:[
+      {name:"Verse", lyric:"Can I get your hand to write on, just a piece of leg to bite on…", lines:[["Am","G","Em","F"]]},
+      {name:"Chorus", lyric:"Fly away on my Zephyr, I feel it more than ever…", lines:[["D","G","A"],["Am","G","Em","F"]]}
+    ]},
+  { id:"linger", title:"Linger", artist:"Freedom Fry", keyPc:2, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"If you, if you could return, don't let it burn, don't let it fade…", lines:[["D","A","C","G"]]},
+      {name:"Chorus", lyric:"But I'm in so deep, you know I'm such a fool for you…", lines:[["D","A","C","G"]]}
+    ]},
+  { id:"american-boy", title:"american boy", artist:"Eden Elf", keyPc:9, quality:"minor",
+    sections:[
+      {name:"Verse", lyric:"Just another one champion sound, me and Estelle we 'bout to get down…", lines:[["Emaj7","Cmaj7","Am7","Fmaj7"]]},
+      {name:"Chorus", lyric:"Take me on a trip, I'd like to go some day…you'll be my American boy…", lines:[["Emaj7","Cmaj7","Am7","Fmaj7"]]}
+    ]},
+  { id:"say-my-name", title:"Say My Name (Spotify Studios NYC)", artist:"Hozier", keyPc:9, quality:"minor",
+    sections:[
+      {name:"Vamp", lyric:"(smooth jam groove)", lines:[["C","Am"]]},
+      {name:"Chorus", lyric:"Say my name, say my name, if no one is around you…", lines:[["Am","F"],["Dm","G"],["Am"]]}
+    ]},
+  { id:"im-not-the-only-one", title:"I'm Not the Only One (Live)", artist:"Dua Lipa", keyPc:5, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(instrumental)", lines:[["F","A","Dm","Bb"],["F","C","F"]]},
+      {name:"Verse", lyric:"You and me, we made a vow, for better or for worse…", lines:[["F","A","Dm","Bb"],["F","C","F"]]},
+      {name:"Chorus", lyric:"You say I'm crazy… but when you call me baby, I know I'm not the only one…", lines:[["F","A","Dm","Bb"],["F","C","F"]]},
+      {name:"Bridge", lyric:"I have loved you for many years, maybe I am just not enough…", lines:[["F","C"],["E","Am","G"]]}
+    ]},
+  { id:"dancing-in-the-dark", title:"Dancing in the Dark", artist:"Eddie Berman", keyPc:11, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I get up in the evening, and I ain't got nothing to say…", lines:[["B","E"]]},
+      {name:"Pre-chorus", lyric:"Man, I ain't getting nowhere, I'm just living in a dump like this…", lines:[["C#m","E"],["C#m","F#"]]},
+      {name:"Chorus", lyric:"You can't start a fire… even if we're just dancing in the dark…", lines:[["B","E"],["C#m","E","B"]]}
+    ]},
+  { id:"baby-come-back", title:"Baby Come Back", artist:"Player", keyPc:0, quality:"minor",
+    sections:[
+      {name:"Verse", lyric:"Spending all my nights, all my money going out on the town…", lines:[["Ab/Bb","Gm"]]},
+      {name:"Chorus", lyric:"Baby come back, any kind of fool could see…", lines:[["Abmaj7","Gm7","Cm7"],["Fm7","Gm7","Cm7"],["Abmaj7","Gm7","Cm7"],["Fm7","Gm7","Cm7","Dbmaj7"]]},
+      {name:"Bridge", lyric:"Now that I put it all together, give me the chance to make you see…", lines:[["Ebmaj7","Bbmaj7"],["Ebmaj7","Dm7","Gm7"]]}
+    ]},
+  { id:"how-to-make-gravy", title:"How to Make Gravy", artist:"Paul Kelly", keyPc:4, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Hello Dan, it's Joe here, I hope you're keeping well…", lines:[["E","F#m","G#m","F#m"]]},
+      {name:"Pre-chorus", lyric:"If I get good behaviour, I'll be out of here by July…", lines:[["A","B"]]},
+      {name:"Chorus", lyric:"Who's gonna make the gravy now? I bet it won't taste the same…", lines:[["E","F#m"],["A","B"]]}
+    ]},
+  { id:"impossible", title:"Impossible", artist:"James Arthur", keyPc:5, quality:"minor",
+    sections:[
+      {name:"Verse", lyric:"I remember years ago, someone told me I should take caution when it comes to love…", lines:[["Fm","Ab","Eb","Db"]]},
+      {name:"Pre-chorus", lyric:"And now when all is done, there is nothing to say…", lines:[["Db","Eb"],["Fm","Eb"]]},
+      {name:"Chorus", lyric:"Tell them all I know now, shout it from the rooftops…  Impossible…", lines:[["Fm","Ab","Eb","Db"]]}
+    ]},
+  { id:"believe", title:"Believe (triple j Like A Version)", artist:"DMA'S", keyPc:4, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"No matter how hard I try, you keep pushing me aside…", lines:[["E","G#m"],["A","B"]]},
+      {name:"Chorus", lyric:"Do you believe in life after love?…", lines:[["E","B","F#m","A"]]}
+    ]},
+  { id:"what-was-i-made-for", title:"What Was I Made For?", artist:"Billie Eilish", keyPc:0, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I used to float, now I just fall down… what I was made for…", lines:[["C","Em","F"]]},
+      {name:"Refrain", lyric:"What was I made for?…", lines:[["Am","Em","F"]]},
+      {name:"Chorus", lyric:"'Cause I, I don't know how to feel, but I wanna try…", lines:[["Dm","G"],["C","Em","F"]]}
+    ]},
+  { id:"linger-royel", title:"Linger (SiriusXM Session)", artist:"Royel Otis", keyPc:2, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"If you, if you could return, don't let it burn, don't let it fade…", lines:[["D","A","C","G"]]},
+      {name:"Chorus", lyric:"But I'm in so deep… do you have to let it linger?…", lines:[["D","A","C","G"]]}
+    ]},
+  { id:"love-lost", title:"Love Lost", artist:"The Temper Trap", keyPc:11, quality:"minor",
+    sections:[
+      {name:"Verse", lyric:"Our love was lost, but now we've found it…", lines:[["Bm","G","D"]]},
+      {name:"Refrain", lyric:"And if you flash your heart, I won't deny it… I promise…", lines:[["Bm","G","D"]]},
+      {name:"Bridge", lyric:"In the rubble are all the things that you've been dreaming of…", lines:[["Bm","Em","G"]]}
+    ]},
+  { id:"flame-trees", title:"Flame Trees", artist:"Cold Chisel", keyPc:4, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"The kids are driving and Saturday afternoon just passed me by…", lines:[["A","E"]]},
+      {name:"Pre-chorus", lyric:"And I can't stop that long-forgotten feeling of her…", lines:[["A","B","G#m"],["A","B","E"]]},
+      {name:"Chorus", lyric:"And oh the flame trees'll blind a weary driver…", lines:[["A","B","F#m"],["A","B","E"],["A","B","C#m","E"]]}
+    ]},
+  { id:"in-the-summertime", title:"In the Summertime", artist:"Thirsty Merc", keyPc:4, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I don't have a job, I never liked them… I just wanna play in the sunshine…", lines:[["E","A","B"]]},
+      {name:"Pre-chorus", lyric:"Gimme a chance, I'll do my best to kick and scream and dance…", lines:[["F#","A"],["B","E"]]},
+      {name:"Chorus", lyric:"Everything is gonna be alright, in the summertime, baby…", lines:[["C#m","A","E"],["F#","A"],["B","E"]]}
+    ]},
+  { id:"head-over-heels", title:"Head Over Heels", artist:"Tears for Fears", keyPc:7, quality:"major",
+    sections:[
+      {name:"Intro", lyric:"(synth)", lines:[["C","D"]]},
+      {name:"Verse", lyric:"I wanted to be with you alone, and talk about the weather…", lines:[["A","Cmaj7","C"]]},
+      {name:"Chorus", lyric:"Something happens and I'm head over heels… don't throw it away…", lines:[["G","Em"],["Bb"]]},
+      {name:"Bridge", lyric:"And this is my four leaf clover…", lines:[["C","D"]]}
+    ]},
+  { id:"if-i-aint-got-you", title:"If I Ain't Got You", artist:"Jordan Feliz", keyPc:7, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Some people live for the fortune, some people live just for the fame…", lines:[["Am7","Gmaj7","Em7"],["Am7","D"]]},
+      {name:"Chorus", lyric:"Some people want it all, but I don't want nothing at all… if I ain't got you, baby…", lines:[["Cmaj7","Bm7","Am7","Gmaj7"],["Am7","Bm7","Cmaj7","D"]]}
+    ]},
+  { id:"someone-you-loved", title:"Someone You Loved", artist:"Lewis Capaldi", keyPc:1, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I'm going under, and this time, I fear there's no one to save me…", lines:[["Db","Ab","Bbm","Gb"]]},
+      {name:"Chorus", lyric:"Now the day bleeds into nightfall… I was getting kinda used to being someone you loved…", lines:[["Db","Ab","Bbm","Gb"]]},
+      {name:"Bridge", lyric:"And I tend to close my eyes when it hurts sometimes…", lines:[["Fm","Gb","Db","Ab"]]}
+    ]},
+  { id:"all-of-me", title:"All of Me", artist:"John Legend", keyPc:8, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"What would I do without your smart mouth, drawing me in, and you kicking me out…", lines:[["Fm","Db","Ab","Eb"]]},
+      {name:"Pre-chorus", lyric:"My head's under water, but I'm breathing fine…", lines:[["Bbm","Ab","Eb"]]},
+      {name:"Chorus", lyric:"'Cause all of me loves all of you…", lines:[["Ab","Fm","Bbm"],["Db","Eb"]]}
+    ]},
+  { id:"when-i-was-your-man", title:"When I Was Your Man", artist:"Bruno Mars", keyPc:0, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Same bed, but it feels just a little bit bigger now…", lines:[["Am","C","Dm","G"],["C","Em"]]},
+      {name:"Pre-chorus", lyric:"And all just sounds like ooh… too young, too dumb to realize…", lines:[["Am","Em"],["Bb","C"]]},
+      {name:"Chorus", lyric:"That I should've bought you flowers, and held your hand…", lines:[["G","F"],["G","C"],["F","G","Am"],["D7","F"],["Fm","C"]]}
+    ]},
+  { id:"make-you-feel-my-love", title:"Make You Feel My Love", artist:"Adele", keyPc:10, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"When the rain is blowing in your face, and the whole world is on your case…", lines:[["Bb","F/A","Ab","Eb/G"],["Ebm","Bb/F"],["C7","F7","Bb"]]},
+      {name:"Bridge", lyric:"I know you haven't made your mind up yet… no doubt in my mind where you belong…", lines:[["Eb","Bb/F"],["D7","Eb","Bb"],["Eb","Bb/F"],["C7","F7"]]}
+    ]},
+  { id:"the-scientist", title:"The Scientist", artist:"Coldplay", keyPc:0, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"Come up to meet you, tell you I'm sorry, you don't know how lovely you are…", lines:[["Am7","F","C","C/B"]]},
+      {name:"Chorus", lyric:"Nobody said it was easy… no one ever said it would be this hard…", lines:[["F","C","C/B"],["F","C","C6","G"]]},
+      {name:"Tag", lyric:"Oh, take me back to the start…", lines:[["C"]]}
+    ]},
+  { id:"perfect", title:"Perfect", artist:"Ed Sheeran", keyPc:8, quality:"major",
+    sections:[
+      {name:"Verse", lyric:"I found a love for me, darling just dive right in and follow my lead…", lines:[["Ab","Fm","Db","Eb"]]},
+      {name:"Chorus", lyric:"Baby, I'm dancing in the dark with you between my arms…", lines:[["Fm","Db","Ab","Eb"]]}
+    ]}
+];
+
+/* =========================================================
+   FULL PLAYLIST CATALOG — every track (id = chart if charted)
+   ========================================================= */
+const CATALOG = [
+  {t:"BIRDS OF A FEATHER",a:"Billie Eilish",id:"birds-of-a-feather"},
+  {t:"So Easy (To Fall In Love)",a:"Olivia Dean",id:"so-easy"},
+  {t:"The Night We Met",a:"Lord Huron",id:"the-night-we-met"},
+  {t:"Lose Control",a:"Teddy Swims",id:"lose-control"},
+  {t:"Ordinary",a:"Alex Warren",id:"ordinary"},
+  {t:"Don't Dream It's Over",a:"Crowded House",id:"dont-dream-its-over"},
+  {t:"Beautiful Things",a:"Benson Boone",id:"beautiful-things"},
+  {t:"Fooled Around and Fell in Love",a:"Elvin Bishop",id:"fooled-around"},
+  {t:"Bette Davis Eyes",a:"Kim Carnes",id:"bette-davis-eyes"},
+  {t:"Time After Time",a:"Cyndi Lauper",id:"time-after-time"},
+  {t:"Free Fallin'",a:"Tom Petty",id:"free-fallin"},
+  {t:"Englishman in New York",a:"Sting",id:"englishman-in-new-york"},
+  {t:"Don't Stop Believin'",a:"Journey",id:"dont-stop-believin"},
+  {t:"Rosanna",a:"Toto",id:"rosanna"},
+  {t:"Somewhere Only We Know",a:"Keane",id:"somewhere-only-we-know"},
+  {t:"champagne problems",a:"Taylor Swift",id:"champagne-problems"},
+  {t:"Drops of Jupiter",a:"Train",id:"drops-of-jupiter"},
+  {t:"Trouble",a:"Coldplay",id:"trouble"},
+  {t:"Big Yellow Taxi",a:"Counting Crows",id:"big-yellow-taxi"},
+  {t:"Drive",a:"Incubus",id:"drive"},
+  {t:"There She Goes",a:"Sixpence None the Richer",id:"there-she-goes"},
+  {t:"Last Request",a:"Paolo Nutini",id:"last-request"},
+  {t:"Hand in My Pocket",a:"Alanis Morissette",id:"hand-in-my-pocket"},
+  {t:"3AM",a:"Matchbox Twenty",id:"three-am"},
+  {t:"The Zephyr Song",a:"Red Hot Chili Peppers",id:"zephyr-song"},
+  {t:"Slide",a:"Goo Goo Dolls",id:"slide"},
+  {t:"Stop and Stare",a:"OneRepublic",id:"stop-and-stare"},
+  {t:"Hanging by a Moment",a:"Lifehouse",id:"hanging-by-a-moment"},
+  {t:"Slow It Down",a:"Benson Boone",id:"slow-it-down"},
+  {t:"Fast Car",a:"Luke Combs",id:"fast-car"},
+  {t:"Say You Won't Let Go",a:"James Arthur",id:"say-you-wont-let-go"},
+  {t:"Dancing On My Own",a:"Calum Scott",id:"dancing-on-my-own"},
+  {t:"A Thousand Years",a:"James Arthur",id:"a-thousand-years"},
+  {t:"Linger",a:"Freedom Fry",id:"linger"},
+  {t:"I'm Not the Only One (Live)",a:"Dua Lipa",id:"im-not-the-only-one"},
+  {t:"american boy",a:"Eden Elf",id:"american-boy"},
+  {t:"Say My Name (Spotify Studios NYC)",a:"Hozier",id:"say-my-name"},
+  {t:"drivers license",a:"Us The Duo",id:"drivers-license"},
+  {t:"You're Still The One",a:"Teddy Swims",id:"youre-still-the-one"},
+  {t:"Georgia",a:"Vance Joy",id:"georgia"},
+  {t:"Dancing in the Dark",a:"Eddie Berman",id:"dancing-in-the-dark"},
+  {t:"Dive",a:"Olivia Dean",id:"dive"},
+  {t:"If You're Gone",a:"Matchbox Twenty",id:"if-youre-gone"},
+  {t:"I'm On Fire",a:"Bruce Springsteen",id:"im-on-fire"},
+  {t:"Baby Come Back",a:"Player",id:"baby-come-back"},
+  {t:"Last Christmas",a:"Wham!",id:"last-christmas"},
+  {t:"Ironic",a:"Alanis Morissette",id:"ironic"},
+  {t:"Fade Into You",a:"Mazzy Star",id:"fade-into-you"},
+  {t:"Yellow",a:"Coldplay",id:"yellow"},
+  {t:"Dreams",a:"The Cranberries",id:"dreams"},
+  {t:"Torn",a:"Natalie Imbruglia",id:"torn"},
+  {t:"Roses",a:"Outkast",id:"roses"},
+  {t:"How to Make Gravy",a:"Paul Kelly",id:"how-to-make-gravy"},
+  {t:"Sex on Fire",a:"Kings of Leon",id:"sex-on-fire"},
+  {t:"Crazy",a:"Gnarls Barkley",id:"crazy"},
+  {t:"Impossible",a:"James Arthur",id:"impossible"},
+  {t:"Believe (triple j Like A Version)",a:"DMA'S",id:"believe"},
+  {t:"What Was I Made For?",a:"Billie Eilish",id:"what-was-i-made-for"},
+  {t:"vampire",a:"Olivia Rodrigo",id:"vampire"},
+  {t:"Shallow",a:"Lady Gaga & Bradley Cooper",id:"shallow"},
+  {t:"Talk to You (ft. Elton John)",a:"Sam Fender",id:"talk-to-you"},
+  {t:"The Only Exception",a:"Spacey Jane",id:"the-only-exception"},
+  {t:"Hold Back the River",a:"James Bay",id:"hold-back-the-river"},
+  {t:"Until I Found You",a:"Stephen Sanchez",id:"until-i-found-you"},
+  {t:"Stay",a:"Rihanna & Mikky Ekko",id:"stay"},
+  {t:"Always Remember Us This Way",a:"Lady Gaga",id:"always-remember-us-this-way"},
+  {t:"Stick Season",a:"Noah Kahan",id:"stick-season"},
+  {t:"Linger (SiriusXM Session)",a:"Royel Otis",id:"linger-royel"},
+  {t:"Die With A Smile",a:"Lady Gaga & Bruno Mars",id:"die-with-a-smile"},
+  {t:"End of Beginning",a:"Djo",id:"end-of-beginning"},
+  {t:"Jealous",a:"Labrinth",id:"jealous"},
+  {t:"Seventeen Going Under",a:"Sam Fender",id:"seventeen-going-under"},
+  {t:"Watermelon Sugar",a:"Harry Styles",id:"watermelon-sugar"},
+  {t:"Best Part",a:"Daniel Caesar & H.E.R.",id:"best-part"},
+  {t:"Love Lost",a:"The Temper Trap",id:"love-lost"},
+  {t:"Flame Trees",a:"Cold Chisel",id:"flame-trees"},
+  {t:"In the Summertime",a:"Thirsty Merc",id:"in-the-summertime"},
+  {t:"Ain't No Sunshine",a:"Bill Withers",id:"aint-no-sunshine"},
+  {t:"Everybody Wants to Rule the World",a:"Tears for Fears",id:"everybody-wants-to-rule-the-world"},
+  {t:"Head Over Heels",a:"Tears for Fears",id:"head-over-heels"},
+  {t:"If I Ain't Got You",a:"Jordan Feliz",id:"if-i-aint-got-you"},
+  {t:"Irreplaceable",a:"Zak Manley",id:"irreplaceable"},
+  {t:"Babylon",a:"David Gray",id:"babylon"},
+  {t:"Wherever You Will Go",a:"The Calling",id:"wherever-you-will-go"},
+  {t:"Speed of Sound",a:"Coldplay",id:"speed-of-sound"},
+  {t:"Bennie and the Jets",a:"Elton John",id:"bennie-and-the-jets"},
+  {t:"Push",a:"Matchbox Twenty",id:"push"}
+];
+const PLAYLIST_TOTAL = CATALOG.length;
+const CHARTED_COUNT = CATALOG.filter(s=>s.id).length;
+
+// Hand-picked extras in the same style — NOT part of the playlist, shown as bonus pages.
+const SUGGESTED = [
+  {t:"Someone You Loved",a:"Lewis Capaldi",id:"someone-you-loved"},
+  {t:"All of Me",a:"John Legend",id:"all-of-me"},
+  {t:"When I Was Your Man",a:"Bruno Mars",id:"when-i-was-your-man"},
+  {t:"Make You Feel My Love",a:"Adele",id:"make-you-feel-my-love"},
+  {t:"The Scientist",a:"Coldplay",id:"the-scientist"},
+  {t:"Perfect",a:"Ed Sheeran",id:"perfect"}
+];
+
+/* =========================================================
+   TRANSPOSE ENGINE
+   ========================================================= */
+const LETTERS=["C","D","E","F","G","A","B"];
+const LETTER_PC={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+// standard key name for each tonic pitch class (the keys real charts use)
+const KEY_NAMES={0:"C",1:"Db",2:"D",3:"Eb",4:"E",5:"F",6:"F#",7:"G",8:"Ab",9:"A",10:"Bb",11:"B"};
+// clean ≤1-accidental spellings, used to rescue chromatic chords from ugly double-accidentals
+const SHARP_NAMES={0:"C",1:"C#",2:"D",3:"D#",4:"E",5:"F",6:"F#",7:"G",8:"G#",9:"A",10:"A#",11:"B"};
+const FLAT_NAMES ={0:"C",1:"Db",2:"D",3:"Eb",4:"E",5:"F",6:"Gb",7:"G",8:"Ab",9:"A",10:"Bb",11:"B"};
+const SHARP_KEYS=new Set([7,2,9,4,11,6]); // G D A E B F# spell with sharps; everything else flats
+const mod12 = n => ((n%12)+12)%12;
+const keyUsesSharps = pc => SHARP_KEYS.has(mod12(pc));
+
+function accVal(acc){ let v=0; for(const c of acc){ v += c==="#"?1 : c==="b"?-1 : 0; } return v; }
+function accStr(v){ return v>0 ? "#".repeat(v) : v<0 ? "b".repeat(-v) : ""; }
+
+// diatonic, interval-preserving transposition of a single note name.
+// useSharps biases the enharmonic spelling when a clean diatonic spelling isn't available.
+function transposeNote(name, letterSteps, semis, useSharps){
+  const letter=name[0], acc=name.slice(1);
+  const oldIdx=LETTERS.indexOf(letter);
+  const newIdx=((oldIdx+letterSteps)%7+7)%7;
+  const newLetter=LETTERS[newIdx];
+  const oldPc=mod12(LETTER_PC[letter]+accVal(acc));
+  const targetPc=mod12(oldPc+semis);
+  let d=mod12(targetPc-LETTER_PC[newLetter]);
+  if(d>6) d-=12;                 // keep accidentals minimal
+  // diatonic spelling is clean (natural or single accidental) -> use it;
+  // otherwise fall back to a key-appropriate ≤1-accidental spelling
+  const spelled = Math.abs(d)<=1 ? newLetter+accStr(d) : (useSharps ? SHARP_NAMES : FLAT_NAMES)[targetPc];
+  return tidyEnharmonic(spelled);
+}
+// B/E have no sharp and C/F no flat; collapse those awkward spellings to white keys.
+// E# is left intact since it's the diatonic leading tone of F# major.
+function tidyEnharmonic(n){
+  return n==="Cb" ? "B" : n==="Fb" ? "E" : n==="B#" ? "C" : n;
+}
+
+// transpose a full chord token (root + suffix, optional /bass)
+function transposeToken(token, letterSteps, semis, useSharps){
+  if(!token || token==="N.C." || token==="-") return token;
+  return token.split("/").map(part=>{
+    const m=part.match(/^([A-G][#b]?)(.*)$/);
+    if(!m) return part;
+    return transposeNote(m[1], letterSteps, semis, useSharps) + m[2];
+  }).join("/");
+}
+
+// the (letterSteps, semis) interval that moves this song's key by `semis`
+function shiftFor(song, semis){
+  const oldKey=KEY_NAMES[mod12(song.keyPc)];
+  const newKeyPc=mod12(song.keyPc+semis);
+  const newKey=KEY_NAMES[newKeyPc];
+  const letterSteps=LETTERS.indexOf(newKey[0])-LETTERS.indexOf(oldKey[0]);
+  return {letterSteps, semis, useSharps:keyUsesSharps(newKeyPc)};
+}
+
+// pretty accidentals for display
+function pretty(token){
+  return token.replace(/([A-G])b/g,"$1\u266d").replace(/#/g,"\u266f");
+}
+
+function keyNameFor(song, semis){
+  return pretty(KEY_NAMES[mod12(song.keyPc+semis)]) + " " + song.quality;
+}
+
+/* =========================================================
+   STATE + ROUTER
+   ========================================================= */
+const state = { sort:"title", query:"" };
+const transposeBySong = {}; // id -> live semitone offset
+let currentView = null;     // 'library' | 'song' — for scroll restoration
+let libraryScroll = 0;      // remembered scroll position of the list
+const SONG_BY_ID = Object.fromEntries(SONGS.map(s=>[s.id,s]));
+
+/* ---------- Singer's-key memory (persists across sessions via localStorage) ---------- */
+const PERF_LS_KEY = "tunes.singerKeys.v1";
+let PERF_KEYS = {};
+(function loadPerf(){ try{ PERF_KEYS = JSON.parse(localStorage.getItem(PERF_LS_KEY)) || {}; }catch(e){ PERF_KEYS = {}; } })();
+function getPerf(id){ return Object.prototype.hasOwnProperty.call(PERF_KEYS,id) ? PERF_KEYS[id] : null; }
+function persistPerf(){ try{ localStorage.setItem(PERF_LS_KEY, JSON.stringify(PERF_KEYS)); }catch(e){} }
+function setPerf(id, semis){ PERF_KEYS[id]=semis; persistPerf(); }
+function clearPerf(id){ delete PERF_KEYS[id]; persistPerf(); }
+const shortKey = (song,semis)=> keyNameFor(song,semis).replace(" major","").replace(" minor","m");
+
+function sortedFrom(src){
+  let list = src.slice();
+  const q = state.query.trim().toLowerCase();
+  if(q) list = list.filter(s => s.t.toLowerCase().includes(q) || s.a.toLowerCase().includes(q));
+  const tkey = s => s.t.replace(/^The\s+/i,"").toLowerCase();
+  list.sort((a,b)=>{
+    if(state.sort==="artist"){
+      const c = a.a.localeCompare(b.a, undefined, {sensitivity:"base"});
+      return c!==0 ? c : tkey(a).localeCompare(tkey(b), undefined, {sensitivity:"base"});
+    }
+    return tkey(a).localeCompare(tkey(b), undefined, {sensitivity:"base"});
+  });
+  return list;
+}
+function sortedSongs(){ return sortedFrom(CATALOG); }
+
+function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstElementChild; }
+function esc(s){ return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c])); }
+
+function chordHTML(token){
+  const p = pretty(token);
+  if(p.includes("/")){
+    const [a,b]=p.split("/");
+    return `<span class="chord slash">${esc(a)}<span class="b">/${esc(b)}</span></span>`;
+  }
+  return `<span class="chord">${esc(p)}</span>`;
+}
+
+/* ---------- Library view ---------- */
+function renderLibrary(){
+  const app = document.getElementById("app");
+  const view = el(`<div class="view"></div>`);
+
+  view.appendChild(el(`
+    <header class="masthead">
+      <div class="brand">
+        <span class="eyebrow">Chord book · piano</span>
+        <h1><em>Tunes</em></h1>
+      </div>
+      <div class="tally"><b>${CHARTED_COUNT}</b>charted of ${PLAYLIST_TOTAL}<br>in the playlist</div>
+    </header>
+  `));
+
+  const controls = el(`
+    <div class="controls">
+      <label class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" placeholder="Search title or artist" aria-label="Search songs" />
+      </label>
+      <div class="seg" role="group" aria-label="Sort songs">
+        <button data-sort="title" aria-pressed="${state.sort==="title"}">By title</button>
+        <button data-sort="artist" aria-pressed="${state.sort==="artist"}">By artist</button>
+      </div>
+    </div>
+  `);
+  controls.querySelector("input").value = state.query;
+  controls.querySelector("input").addEventListener("input", e=>{
+    state.query = e.target.value; refreshList();
+  });
+  controls.querySelectorAll(".seg button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      state.sort = b.dataset.sort;
+      controls.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed", x.dataset.sort===state.sort));
+      refreshList();
+    });
+  });
+  view.appendChild(controls);
+
+  const list = el(`<div class="list" id="songlist"></div>`);
+  view.appendChild(list);
+
+  view.appendChild(el(`
+    <div class="hint">
+      All <b>${PLAYLIST_TOTAL} songs</b> from the playlist are listed. <b>${CHARTED_COUNT}</b> have full chord charts (tap to open);
+      the rest are marked <span class="soon">soon</span> and get charted in batches. Say which you want next and they'll jump the queue.
+    </div>
+  `));
+
+  view.appendChild(el(`
+    <div class="suggested-wrap" id="suggested-wrap">
+      <div class="suggested-head">
+        <span class="sg-title">Suggested — in the same style</span>
+        <span class="sg-sub">Six piano/soul-pop ballads picked to match the playlist. Bonus pages, fully charted — not part of your ${PLAYLIST_TOTAL}.</span>
+      </div>
+      <div class="list" id="suggestlist"></div>
+    </div>
+  `));
+
+  app.innerHTML="";
+  app.appendChild(view);
+  refreshList();
+  currentView = "library";
+  requestAnimationFrame(()=>{ window.scrollTo(0, libraryScroll); });
+}
+
+function buildRow(s){
+  const charted = !!s.id;
+  let right;
+  if(charted){
+    const song = SONG_BY_ID[s.id];
+    const sk = getPerf(s.id);
+    const studio = `<div class="keychip">${esc(shortKey(song,0))}</div>`;
+    const perf = (sk!==null && sk!==0) ? `<div class="keychip perf" title="Singer’s key">${esc(shortKey(song,sk))}</div>` : "";
+    right = `<div class="chips">${perf}${studio}</div>`;
+  } else {
+    right = `<div class="soon">soon</div>`;
+  }
+  const row = el(`
+    <div class="row${charted?"":" todo"}" ${charted?'role="link" tabindex="0"':""}>
+      <div>
+        <div class="t">${esc(s.t)}</div>
+        <div class="a">${esc(s.a)}</div>
+      </div>
+      ${right}
+    </div>
+  `);
+  if(charted){
+    const go = ()=>{ location.hash = "#/song/"+s.id; };
+    row.addEventListener("click", go);
+    row.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); }});
+  }
+  return row;
+}
+
+function refreshList(){
+  const list = document.getElementById("songlist");
+  if(list){
+    const songs = sortedSongs();
+    list.innerHTML="";
+    if(songs.length===0){
+      list.appendChild(el(`<div class="empty">No songs match “${esc(state.query)}”.</div>`));
+    } else {
+      songs.forEach(s=> list.appendChild(buildRow(s)));
+    }
+  }
+  // suggested (bonus) list
+  const sgWrap = document.getElementById("suggested-wrap");
+  const sgList = document.getElementById("suggestlist");
+  if(sgWrap && sgList){
+    const sg = sortedFrom(SUGGESTED);
+    sgList.innerHTML="";
+    sgWrap.style.display = sg.length ? "" : "none";
+    sg.forEach(s=> sgList.appendChild(buildRow(s)));
+  }
+}
+
+/* ---------- Piano strip ---------- */
+function pianoSVG(){
+  // one octave, white keys C D E F G A B ; black keys C# D# F# G# A#
+  const whites=[{pc:0,x:0},{pc:2,x:24},{pc:4,x:48},{pc:5,x:72},{pc:7,x:96},{pc:9,x:120},{pc:11,x:144}];
+  const blacks=[{pc:1,x:17},{pc:3,x:41},{pc:6,x:89},{pc:8,x:113},{pc:10,x:137}];
+  let w = whites.map(k=>`<rect class="pkey-w" data-pc="${k.pc}" x="${k.x}" y="0" width="24" height="80" rx="2"/>`).join("");
+  let b = blacks.map(k=>`<rect class="pkey-b" data-pc="${k.pc}" x="${k.x}" y="0" width="14" height="50" rx="2"/>`).join("");
+  return `<svg class="piano" width="168" height="80" viewBox="0 0 168 80" aria-hidden="true">${w}${b}</svg>`;
+}
+
+/* ---------- Song view ---------- */
+function renderSong(id){
+  const song = SONGS.find(s=>s.id===id);
+  if(!song){ location.hash="#/"; return; }
+  if(transposeBySong[id]===undefined){
+    const saved = getPerf(id);
+    transposeBySong[id] = (saved===null ? 0 : saved);
+  }
+
+  const app = document.getElementById("app");
+  const view = el(`<div class="view"></div>`);
+
+  const backLink = el(`<a class="back" href="#/">← All songs</a>`);
+  backLink.addEventListener("click", (e)=>{
+    // true Back when we came from the library (restores native scroll + avoids piling history);
+    // fall back to the library hash if this song was opened directly (no history to go back to)
+    if(history.length > 1){ e.preventDefault(); history.back(); }
+  });
+  view.appendChild(backLink);
+
+  const head = el(`
+    <div class="songhead">
+      <h2>${esc(song.title)}</h2>
+      <div class="by">by <span>${esc(song.artist)}</span></div>
+      ${song.notes ? `<div class="patch">▣ <span>${esc(song.notes)}</span></div>` : ""}
+    </div>
+  `);
+  view.appendChild(head);
+
+  const console_ = el(`
+    <div class="console">
+      <div class="readout">
+        <span class="lbl">Key</span>
+        <div class="keyflow" id="keyflow">
+          <span class="orig" id="origkey"></span>
+          <span class="arrow">→</span>
+          <span class="now" id="nowkey"></span>
+        </div>
+        ${pianoSVG()}
+      </div>
+      <div class="panel-right">
+        <div class="stepper">
+          <button class="btn" id="down" aria-label="Down a semitone">−</button>
+          <span class="semi" id="semi"></span>
+          <button class="btn" id="up" aria-label="Up a semitone">+</button>
+        </div>
+        <div class="keymodes" id="keymodes">
+          <button class="seg2" id="segStudio">Studio</button>
+          <button class="seg2" id="segPerf">Singer’s key</button>
+        </div>
+        <button class="save" id="savePerf">★ Save this as singer’s key</button>
+        <div class="perfnote" id="perfnote"></div>
+      </div>
+    </div>
+  `);
+  view.appendChild(console_);
+
+  const sectionsWrap = el(`<div id="sections"></div>`);
+  song.sections.forEach(sec=>{
+    const block = el(`
+      <div class="section">
+        <div class="shead">
+          <span class="sname">${esc(sec.name)}</span>
+          <span class="slyric">${esc(sec.lyric)}</span>
+        </div>
+        <div class="progs"></div>
+      </div>
+    `);
+    sectionsWrap.appendChild(block);
+  });
+  view.appendChild(sectionsWrap);
+
+  view.appendChild(el(`<div class="foot">Studio pitch by default · transpose to suit the singer and Save — it’s remembered next time you open the song.</div>`));
+
+  app.innerHTML="";
+  app.appendChild(view);
+
+  function paint(){
+    const semis = transposeBySong[id];
+    const sh = shiftFor(song, semis);
+
+    document.getElementById("origkey").textContent = keyNameFor(song,0);
+    document.getElementById("nowkey").textContent  = keyNameFor(song,semis);
+    document.getElementById("keyflow").classList.toggle("same", semis===0);
+
+    const semiEl = document.getElementById("semi");
+    semiEl.innerHTML = semis===0 ? `<b>original</b>` : `<b>${semis>0?"+":""}${semis}</b> semitone${Math.abs(semis)===1?"":"s"}`;
+
+    // singer's-key (performance) controls
+    const saved = getPerf(id);
+    const segStudio = document.getElementById("segStudio");
+    const segPerf   = document.getElementById("segPerf");
+    const saveBtn   = document.getElementById("savePerf");
+    const note      = document.getElementById("perfnote");
+
+    segStudio.classList.toggle("active", semis===0);
+    segPerf.disabled = (saved===null);
+    segPerf.classList.toggle("active", saved!==null && semis===saved && semis!==0);
+    segPerf.textContent = saved!==null ? `Singer’s: ${shortKey(song,saved)}` : "Singer’s key";
+
+    const atSaved = (saved!==null && semis===saved);
+    saveBtn.disabled = (semis===0) || atSaved;
+    saveBtn.textContent = (saved!==null && !atSaved) ? "★ Update singer’s key to this" : "★ Save this as singer’s key";
+
+    if(saved!==null){
+      note.innerHTML = `Singer’s key saved: <b>${esc(keyNameFor(song,saved))}</b> (${saved>0?"+":""}${saved}) <button class="linkbtn" id="clearPerf">clear</button>`;
+      document.getElementById("clearPerf").addEventListener("click", ()=>{
+        const wasAtSaved = (transposeBySong[id]===getPerf(id));
+        clearPerf(id);
+        if(wasAtSaved) transposeBySong[id]=0;
+        paint();
+      });
+    } else {
+      note.innerHTML = `<span class="muted">Transpose to suit the singer, then Save — it’ll be remembered.</span>`;
+    }
+
+    // light the tonic
+    const tonic = mod12(song.keyPc + semis);
+    document.querySelectorAll(".piano [data-pc]").forEach(k=>{
+      k.classList.toggle("lit", Number(k.dataset.pc)===tonic);
+    });
+
+    // chords
+    const blocks = sectionsWrap.querySelectorAll(".section");
+    song.sections.forEach((sec,i)=>{
+      const host = blocks[i].querySelector(".progs");
+      host.innerHTML="";
+      sec.lines.forEach(line=>{
+        const row = document.createElement("div");
+        row.className="prog";
+        row.innerHTML = line.map(tok=>chordHTML(transposeToken(tok, sh.letterSteps, sh.semis, sh.useSharps))).join("");
+        host.appendChild(row);
+      });
+    });
+  }
+
+  document.getElementById("down").addEventListener("click", ()=>{ transposeBySong[id]=Math.max(-11,transposeBySong[id]-1); paint(); });
+  document.getElementById("up").addEventListener("click", ()=>{ transposeBySong[id]=Math.min(11,transposeBySong[id]+1); paint(); });
+  document.getElementById("segStudio").addEventListener("click", ()=>{ transposeBySong[id]=0; paint(); });
+  document.getElementById("segPerf").addEventListener("click", ()=>{ const s=getPerf(id); if(s!==null){ transposeBySong[id]=s; paint(); } });
+  document.getElementById("savePerf").addEventListener("click", ()=>{ setPerf(id, transposeBySong[id]); paint(); });
+
+  paint();
+  currentView = "song";
+  window.scrollTo(0,0);
+}
+
+/* ---------- Router ---------- */
+function route(){
+  const h = location.hash || "#/";
+  const m = h.match(/^#\/song\/(.+)$/);
+  if(m) renderSong(decodeURIComponent(m[1]));
+  else renderLibrary();
+}
+if("scrollRestoration" in history){ history.scrollRestoration = "manual"; }
+window.addEventListener("hashchange", route);
+// remember where you were in the list, so Back returns you there
+window.addEventListener("scroll", ()=>{ if(currentView==="library") libraryScroll = window.scrollY; }, {passive:true});
+route();
+</script>
+</body>
+</html>
